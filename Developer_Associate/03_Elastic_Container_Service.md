@@ -79,4 +79,31 @@
 - once cluster is created, we can create Task/Service.
     - Create new Task Definition.
         - it will require container definitions to add Container image.
-    
+
+# ECS and Fargate Summary
+
+- Elastic Container Service is fully managed container orchestration service.
+    Highly seure, reliable, and scalable way to run containers.
+
+- ECS components:
+    - **Cluster** multiple EC2 instances to house the docker containers.
+    - **Task Definitions** a json file that defines the configuration.
+    - **Task** launches containers as Task Definitions; terminates after
+        workload is completed.
+    - **Service** ensures the tasks remain running (such as web-apps).
+    - **Container Agent** binary on each EC2 instance that monitors, starts, and
+        stops tasks.
+
+- **Elastic Container Registry** ECR
+    - is a fully managed docker container registry that makes it easy for devs
+        to store, manage, and deploy Docker container images.
+    - just a Amazon Docker hub.
+
+- **Fargate**
+    - is a serverless containers! devs do not have to worry about servers;
+        simply run containers and pay based on the duration and consumption.
+    - has **cold start**; use ECS if this is an issue.
+    - duration is as long as you would like.
+        - **Lambda** does not.
+    - memory upto 30 GB.
+    - pay for at least 1 min and per second after.
