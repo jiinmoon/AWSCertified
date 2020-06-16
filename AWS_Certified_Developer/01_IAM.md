@@ -7,6 +7,7 @@
 - IAM allows you to manage users and their level of AWS Console. It is important
     to understand IAM for administrating a company's AWS account in real life.
 
+
 ## IAM functions are...
 
 - Centralized control of your AWS account.
@@ -29,15 +30,16 @@
 
 - Policies : A doc that defines one or more permissions.
 
-## IAM Lab Follow-Along
 
+## IAM Lab Follow-Along
+o
 - Log into the **AWS Management Console**.
 
 - **IAM** can be found under Security, Identy & Compliance (or, simply search in
     Find Services).
 
 - IAM console will show you IAM users sign-in link.
-    - i.e. 'https://YOUR-ACCOUNT-NUMBER.signin.aws.amazon.com/console'
+    - i.e. 'https://YOUR-ACCOUNT-NUMBER.signin.aws.amazon.com/console'.
     - URL can be customized.
     - Users can follow that link to access the console.
 
@@ -67,18 +69,18 @@
             show what they are capable of.
         - Below is an example of **AdministratorAccess** policy.
 
-        """json
+"""json
+{
+    "Version": "2012-10-17",
+    "Statement": [
         {
-            "Version": "2012-10-17",
-            "Statement": [
-                {
-                    "Effect": "Allow",
-                    "Action": "*",
-                    "Resource": "*"
-                }
-            ]
+            "Effect": "Allow",
+            "Action": "*",
+            "Resource": "*"
         }
-        """
+    ]
+}
+"""
 
     - After assigning group to user, you may optionally add **tags** which is a
         key-value pairs include user information (such as e-mail addr, or job
@@ -97,7 +99,7 @@
         to this group. Select AmazonS3ReadOnlyAccess.
     - Then, we should go to the hypothetical user, changing its Groups to 'HR'
         by add user to groups; Remember to delete him from sysadmin group.
-    - Also, we can attach specific policy directly to grant permissions;
+    - Also, we can attach specific policy directly to grant permissions.
 
 - Lastly, we should set a IAM password policy.
     - We can set minimum password length.
