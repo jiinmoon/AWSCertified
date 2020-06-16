@@ -70,16 +70,16 @@
         - Below is an example of **AdministratorAccess** policy.
 
     ```json
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Effect": "Allow",
-            "Action": "*",
-            "Resource": "*"
-        }
-    ]
-}
+    {
+        "Version": "2012-10-17",
+        "Statement": [
+            {
+                "Effect": "Allow",
+                "Action": "*",
+                "Resource": "*"
+            }
+        ]
+    }
     ```
 
     - After assigning group to user, you may optionally add **tags** which is a
