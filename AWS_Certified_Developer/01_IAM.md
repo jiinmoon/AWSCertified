@@ -32,7 +32,7 @@
 
 
 ## IAM Lab Follow-Along
-o
+
 - Log into the **AWS Management Console**.
 
 - **IAM** can be found under Security, Identy & Compliance (or, simply search in
@@ -69,7 +69,7 @@ o
             show what they are capable of.
         - Below is an example of **AdministratorAccess** policy.
 
-"""json
+    ```json
 {
     "Version": "2012-10-17",
     "Statement": [
@@ -80,7 +80,7 @@ o
         }
     ]
 }
-"""
+    ```
 
     - After assigning group to user, you may optionally add **tags** which is a
         key-value pairs include user information (such as e-mail addr, or job
