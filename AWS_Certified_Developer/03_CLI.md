@@ -45,4 +45,36 @@
 
 > aws s3 ls s3://YOUR-BUCKET-NAME
 
+- In IAM console, we will remove the access key for this user now. We can create
+    new access keys for users anytime.
+- Now, when we go back to terminal, and try to use aws CLI, it will give an
+    InvalidAccesskeyId error.
+
+- To learn more about AWS CLI, look for doc about AWS CLI Command Reference.
+
+---
+
+## CLI Exam Tips
+
+- Practice a good security principle; in particular, **Least Privilege**:
+    - give users the minimum required access.
+
+- Always create groups:
+    - Assign users to groups; users will then automatically inherit the
+        permissions of the group.
+    - Permissions are assigned using policy docs (JSON format).
+
+- **Secret Access Key** is shown only once. Remember to save it. If lost, ask
+    root account holder or admin to create a new one for you. Then, to use CLI,
+    need to configure credentials using 'aws configure'.
+
+- Never use one access key and share amongst the devs.
+    - i.e. a dev can leave the company, in which case we need to delete the
+        access key and then redistribute.
+
+- Never upload your personal credentials to GitHub or etc. This is a basic
+    stuff.
+
+- Use CLI on your PC; i.e. treat S3 as a personal cloud storage!
+    - Install details can be found in AWS CLI GitHub page.
 
