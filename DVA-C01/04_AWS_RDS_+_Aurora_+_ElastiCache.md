@@ -271,3 +271,233 @@
 - Shared storage volume has Amazon Aurora on top which can be auto-scaled. Proxy
     Fleet (managed by Aurora) is where Client is connecting to.
 
+## Global Aurora
+
+- Aurora Cross Region Read Replicas:
+    - useful for disaster recovery.
+    - simple to put in place.
+
+- Aurora Global Database (recommended):
+    - 1 Primary Region (read / write).
+    - Up to 5 secondary (read-only) regions, replication lag is less than a second.
+    - Up to 16 Read Replicas per seconday region, helps to decrease latency.
+    - Promoting another region (for diaster recovery) has an RTO (Recovery Time
+        Objective) of less than a minute.
+
+- i.e. We may have a Aurora DB where our application read / write from at one
+    primary region (say, us-west-1). We can set up a seconday region (i.e.
+    eu-west-1) by replication. And apps set up in the eu-west-1 can read from
+    the replica.
+
+## Creating an Aurora instance
+
+- Aurora is created under RDS -> Create database.
+- There is an Aurora option amongst the Engine options.
+- We can choose to create Aurora database location: Regional or Global.
+    - Global is where Aurora database is provisioned in multiple AWS regions.
+    - Writes in the primary AWS Region are replicated with typical latency of
+        less than 1 sec to seconday Regions.
+
+- We can select various database features:
+    - One writer and multiple readers.
+        - Support multiple readers reading from same storage volume as writer.
+        - General purpose.
+    - One writer and multiple readers - Parallel query.
+        - Analyze and improve performance of queries made.
+    - Multiple writers.
+        - Supports multiple writer instances to same storage volume.
+    - Serverless.
+        - Specifiy min/max amount of resources required; Aurora scales capacity
+            based on database load.
+        - Good for unpredictable workloads.
+
+- Choose your credentials.
+- Select DB instance size - performance.
+
+- High Availability is made via chooseing Multi-AZ depolyment option.
+    - Creates an Aurora replica or reader node in a different AZ.
+
+---
+
+# AWS ElastiCache
+
+- If RDS was to get managed Relational Databases...
+- Then, ElastiCache is to get managed Redis or Memcached.
+- Caches are in-memory databases with really high performance, low latency.
+- They help to reduce the load off the databases for read-intensive workloads.
+- Helps to make your application stateless.
+- Write Scaling using sharding.
+- Read Scaling using Read Replicas.
+- Multi-AZ with Failover Capability.
+- AWS takes care of OS maintenance / patching, optimizations, setup,
+    configuration, monitoring, failure recovery and backups.
+
+## How does ElastiCache help us? Where in Solutions Architecture it fits in?
+
+### 1. Releving Load off main database.
+
+- Our application will first queries the ElastiCache; if it is not available, it
+    will get from RDS and store in ElastiCache.
+- **Cache hit** grabs directly from ElastiCache.
+- **Cache miss** reads from DB; app should be coded to save the data to cache.
+- Helps relieve load in RDS.
+- Cache must have an invalidation strategy to make sure only the most freqeuntly
+    accessed data is stored.
+
+### 2. User Session Store
+
+- User interacts with our 'stateless' applications; meaning that application is
+    not aware of who it is dealing with nor what state is it in.
+- This can be done by allowing application to write the session data into the
+    ElastiCache.
+- Suppose user request now hits the another application in our manage
+    auto-scaling group; the application will query the ElastiCache for user
+    information to realize what state that user is in - in this case, user's
+    session data is restored.
+- The instance retreives the data and realize that the user is already logged in.
+
+## ElastiCache -- Redis vs Memcached
+
+- REDIS:
+    - Multi AZ with Auto-Failover.
+    - Read Replicas to scale reads and have high availability.
+    - Data Durability using AOF persistence.
+    - Backup and restore features.
+    - In many ways, very much similar to RDS storages.
+
+- MEMCACHED:
+    - Multi-node for partitioning of data (sharding).
+    - Non-persistent.
+    - No backup and restore.
+    - Multi-threaded Architecture.
+    - Sharding is the key here; part of cache is on one shard, and another on
+        other shard, where each shard is the memcached node.
+    - In a sense, this is more pure cache.
+
+## Creating ElastiCache
+
+- ElastiCache is available under its own service.
+- Creating ElastiCache cluster first begins with selecting the Cluster engine
+    option: Redis or Memcached.
+    - Redis for Multi-AZ with Auto-Failover; enhanced robustness. Can also be
+        used as a database if needed.
+    - Memcached for high-performance, distributed memory object caching system.
+        Mostly intended for dynamic web applications.
+
+- Various security options available.
+    - It has its own security group.
+    - Encryption at rest?
+    - Encryption in-transit?
+        - Redis AUTH?
+        - Redis Auth token requires for access.
+
+- Backup options with Redis available.
+
+## Caching Implementation Considerations
+
+- Read more at https://aws.amazon.com/caching/implementation-considerations
+
+- Is it safe to cache data?
+    - data may be out of data; eventually consistent.
+    - i.e. data stored in cache is out of sync with database.
+- Is cahcing effective for that data?
+    - Pattern: data changing slowly; few keys are frequently needed.
+    - Anti-Pattern: data changing rapidly, all large key space frequently
+        needed.
+- Is data structured well for chacing?
+    - i.e. key-value caching, or caching of aggregations results.
+
+- **Which caching design pattern is the most appropriate?**
+
+## Lazy Loading / Cache-Aside / Lazy Population
+
+- Suppose we have our application, ElastiCache, and RDS.
+- If application has a cache hit, it can retrieve the data from ElastiCache.
+- In case of cache miss, application makes READ from DB.
+    - Then, it will write to cache, so that any other app that is requesting the
+        same data will access it faster with subsequent cache hits.
+
+- Pros:
+    - Only requestd data is cached (the cache isn't filled with unused data).
+    - Node failures are not fatal (just increased latency to warm the cache).
+
+- Cons:
+    - Cache miss results in 3 round trips, which causes delays.
+    - Stale data; it is possible that cache'd data is out of date.
+
+- **Note** that you are expected to be able to read pseudocode.
+
+- Following is Lazy-Loading strategy:
+
+    ```Python
+    def get_user(user_id):
+        # check the cache
+        record = cache.get(user_id)
+        
+        if record is None:
+            # Run a DB query
+            record = db.query("select * from users where id = ?", user_id)
+            # Populate the cache
+            cache.set(user_id, record)
+            return record
+        else:
+            return record
+
+    # Application code
+    user = get_user(17)
+    ```
+
+## Write Through -- Add or Update cache when database is updated
+
+- Suppose the same set up.
+- When cache hit, app can use the data from ElastiCache.
+- When app WRITES to DB, it will also write to cache as well.
+
+- Pros:
+    - Data in cache is never stale; reads are quick!
+    - Write penalty vs Read penalty (each write is a 2 step process).
+
+- Cons:
+    - Missing Data until it is added / updated in the DB. Mitigation is to
+        implement Lazy Loading strategy as well.
+    - Cache churn - a lot of the data will never be read.
+
+    ```Python
+    def save_user(user_id, values):
+        # save to DB
+        record = db.query("update users ... where id = ?", user_id, values)
+        # save to Cache
+        cache.set(user_id, record)
+        return record
+
+    user = save_user(17, {'name' : 'Jason Loyd'})
+    ```
+
+## Cache Evictions and TTL
+
+- Cache Eviction occurs in 3 ways:
+    - You manually delete the item.
+    - Cache is full and needs a space (LRU).
+    - Item has met is Time-To-Live (TTL).
+
+- TTL is helpful for any kind of data:
+    - leaderboards; comments; activity streams.
+
+- TTL can range from seconds to days.
+
+- If too many evictions happen, it is a sign that we need to scale up or out.
+
+---
+
+## Cache Use Cases Summary
+
+- Lazy Loading / Cache aside is easy to implement and works for many situations.
+
+- Write-through is usually combined with Lazy Loading as targeted for the
+    queries or workloads that benefit from this optimization.
+
+- Setting a TTL is usually not a bad idea, except when you are using
+    Write-through. Set it to a sensible value for your application.
+
+- Only cache the data that makes sense (user profiles, blogs, etc...).
+
