@@ -62,3 +62,99 @@
     - A firewall that controlls traffic to and from an ENI / an EC2 instance.
     - Can have only ALLOW rules.
     - Rules include IP addrs as well as other security groups.
+
+## Network ACL vs Security Groups
+
+- They are quite similar but here are few differences:
+
+- SG operates at the instance level; NACL at subnet level.
+- SG only ALLOWs; NACL supports both ALLOW and DENY rules.
+
+- SG is stateful - return traffic is allowed.
+- NACL is stateless - return traffic must be also allowed by rules.
+
+- SG evaluates all rules before allowing traffic in.
+- NACL process rules in number order when deciding traffic to allow in.
+
+- SG applies to an instance only if someone specifies the SG when launching the
+    instance, or associates the SG with the intance later.
+- NACL automatically applies to all instances in the subnet; thus, users to not
+    have to specify the SG.
+
+## VPC Flow Logs
+
+- Capture information about all IP traffic going into your interfaces:
+    - VPC Flow Logs
+    - Subnet Flow Logs
+    - Elastic Network Interface Flow Logs
+
+- Helps to monitor and troubleshoot connectivity issues. Examples:
+    - Subnets to internet.
+    - Subnets to subnets.
+    - Internet to subnets.
+
+- Captures network information from AWS managed interfaces as well: ELB,
+    ElastiCache, RDS, ...
+
+- VPC Flow logs data can go to S3 and CloudWAtch Logs.
+
+## VPC Peering
+
+- Connect two VPC, privately using AWS' network.
+- Make them behave as if they were in the same netowork.
+- Should not have overlapping CIDR (IP addresses ranges)!
+
+- VPC Peering connection is **not transitive**; must be establied for each VPC
+    that need to communicate with one another. Suppose subnet A and B is peer
+    connected and, A and C is peer connected. This does not mean that B and C
+    can talk to each other.
+    - Thus, you would need to establish VPC peering on B and C separately.
+
+## VPC Endpoints
+
+- Endpoints allow you to connect to AWS Services **using a private network**
+    instead of the public WWW network.
+- Way for AWS Services to securely communicate with each other.
+- Also improves the latency as well.
+- Suppose we have a EC2 instance within the private subnet that wishes to access
+    S3 or DynamoDB that is outside of its VPC. To do so, we would create VPC
+    Endpoint Gateway which creates a secure connection point for theses services
+    to connect to one another without having to go out in public.
+
+- VPC Endpoint Gateways : S3 and DynamoDB.
+- VPC Endpoint Interface : Rest of AWS Services.
+
+- **Only used within your VPC.**
+
+## Site-to-Stie VPC & Direct Connect
+
+- Site-to-Site VPN (Virtual Private Network)
+    - Connect an on-premises VPN to AWS.
+    - The connection is automatically encrypted.
+    - The traffic moves over the public internet.
+    - This grants encrypted connection to VPC.
+
+- Direct Connect (DX)
+    - Establish a **physical** connection between on-premises and AWS.
+    - The connection is private, secure and fast.
+    - Goes over a private network.
+    - Needs few months to establish - construction.
+
+- These cannot access VPC endpoints;
+
+---
+
+## VPC Summary
+
+- VPC: Virtual Pirvate Cloud
+
+- **Subnets** are tied to an AZ; network partition of the VPC.
+- **Internet Gateways** at the VPC level; provides internet access.
+- **NAT Gateways / Instances** give internet access to subnets.
+- **NACL** : stateless; subnet rules for inbound/outbound.
+- **Security Groups** : stateful; operate at the EC2 level or ENI.
+- **VPC Peering** : non-transitive connecting between two VPCs (no overlapping).
+- **VPC Endpoints** : private access to AWS Services within VPC.
+- **VPC Flow Logs** : network taffic logs.
+- **Site to Site VPN** : VPN over public internet between on-premises DC & AWS.
+- **Direct Connect** : direct private connection to AWS.
