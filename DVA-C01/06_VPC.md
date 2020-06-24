@@ -158,3 +158,41 @@
 - **VPC Flow Logs** : network taffic logs.
 - **Site to Site VPN** : VPN over public internet between on-premises DC & AWS.
 - **Direct Connect** : direct private connection to AWS.
+
+---
+
+## Typical 3 tier solution architecture
+
+- User wants to access our web application.
+
+- Thus, we set up an ELB on multi-AZ; because it needs to be able to interact
+    with the user, it is placed on public subnet so that it has web access.
+- To access the ELB, user will first perform DNS query to our Route53. Then,
+    user will be sending traffic to the ELB.
+- ELB will spread out the user traffics to our instances.
+
+- Our EC2 instances will reside within the Auto-Scaling Group, and they will be
+    hosted on different **private** subnet, unlike ELB which is on **public**
+    subnet.
+- EC2 instacnes will be spreaded across multi-AZs; and receive the traffic from
+    ELB via routing table.
+
+- The data will reside on **data subnet**, that is also in different subnet.
+- We would have RDS to read / write data. And have ElastiCache to store and
+    retrieve session data / cached data.
+
+## LAMP Stack on EC2
+
+- Linux :  OS (EC2)
+- Apache : Web Server (EC2)
+- MySQL : database on RDS
+- PHP : Application Logic (EC2)
+
+- Add Redis / Memcahced (ElastiCache) for caching needs.
+- To store local app data : EBS drive (root).
+
+## Wordpress on AWS
+
+- Same 3 tier architecture.
+- But using EFS makes sense - shared network file system; available for all EC2
+    instances connected to it (through ENI).
