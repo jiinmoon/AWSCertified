@@ -183,5 +183,97 @@
 
 - Tip: if no region is specified, default is us-east-1.
 
+---
 
+## AWS Limits
 
+- API Rate Limits:
+    - There is a limit on how many requests you can make to API.
+    - DescribeInstances API for EC2 has 100 calls/s.
+    - GetObject API for S3 has 5500 GETs/s/perfix.
+    - We get Intermittent Error when we go over; thus, implement Exponential
+        Backoff strategy.
+    - For Consistent Errors: request an API throttling limit increase.
+
+- Service Quotas:
+    - Limit on services.
+    - i.e. Running On-Demand Standard Instances: 1152 vCPU.
+    - You can request a service limit increase via opening a ticket.
+
+## Exponential Backoff
+
+- If you get ThrottlingException intermittently, use exponential backoff.
+- Retry mechanism included in SDK API calls.
+- Must implement yourself if using the API as is or in specific cases.
+
+- Simply, once you get an error, wait. If you get an error again, wait double
+    the amount of time. And so on. 1, 2, 4, 8, 16...
+
+## AWS CLI Credentials Provider Chain
+
+- CLI will look for credentials in this order:
+
+    1. Commandline options --region, --output, and --profile
+    2. Environment variables
+        - AWS_ACCESS_KEY_ID, AWS_SECRET_ACCESS_KEY, and AWS_SESSION_TOKEN
+    3. CLI credentials file
+        - `aws configure`
+        - `~/.aws/credentials`
+    4. CLI configuration file
+        - `~/.aws/config`
+    5. Container credentials - for ECS tasks.
+    6. Instance profile credentials - for EC2 Instance Profiles
+
+## AWS SDK Credentials Provider Chain
+
+- SDK credentials ordering is as follows:
+
+    1. Environmet variables
+        - AWS_ACCESS_KEY, AWS_SECRET_ACCESS_KEY
+    2. Java system properties
+        - aws.accessKeyId and aws.secretKey
+    3. Default credential profiles file
+        - `~/.aws/credentials`
+    4. ECS Container credentials - for ECS containers.
+    5. Instance profile crendentials - used on EC2.
+
+## AWS Credentials Scenario
+
+- Suppose an app deployed on an EC2 instance is using environment variables with
+    credentials from an IAM user to call the S3 API.
+- IAM user has S3FullAccess permissions.
+- App only uses one S3 bucket, so best practice would be
+    - define IAM role and EC2 instance profile.
+    - role was assigned with minimum permissions to access one S3 bucket.
+
+- Problem, IAM Instance Profile was assigned to the EC2 instance, but it still
+    had access to all S3 buckets...why?
+
+- Inside EC2 instance, credentials were saved there which took precedence.
+
+## Credentials Best Practice
+
+- NEVER STORE CREDENTIALS ON CODE; never hardcode anything in there!
+
+- Inherit it from credentials chain.
+- Working within AWS, use IAM roles.
+    - EC2 instances Roles
+    - ECS roles
+    - Lambda roles
+
+- Outside of AWS, use environment variables / named profiles.
+
+---
+
+## Signing AWS API requests
+
+- When HTTP API call is made to AWS, you sign the request so that AWS can
+    identify you - using AWS credentials (access key & secret key).
+
+- If using SDK or CLI, the reuqests are already signed for you.
+- If not, you must do it yourself using Signature v4 (sigV4).
+
+## SivV4 Examples
+
+- First is using HTTP header to sign it.
+- other is query string option.
