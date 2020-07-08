@@ -290,4 +290,71 @@
 - Can be used to speed up downloads.
 - Can be used to retrieve only partial data (i.e. head or less of a file).
 
+---
+
+## S3 Select & Glacier Select
+
+- Retrieve less data using SQL by performing **server side filtering**.
+- Can filter by rows & columns (simple SQL statements).
+- Less network transfer, less CPU cost client-sdie.
+
+- The idea is this, before, you would retrieve all the data from S3 and filter
+  client-side. Instead, we change our request that our queries are already
+  filtered. Thus, we will only get the rows and columns we need; not entire
+  thing.
+
+- i.e. clinet performs S3 Select to ge ta CSV file. S3 on server side performs
+  filtering on the file and sends only the parts that we need.
+
+---
+
+## S3 Event Notifications
+
+- Say an event has occurred to our S3 bucket (S3:ObjectCreated,
+  S3:ObjectRemoved, ...).
+- We can create rules to trigger an action.
+- We can filter object names as well (such as all files end with .jpg).
+- One use case would be generate thumnails of images uploaded to S3.
+
+- We have AWS SNS - email service, and SQS - simple queue service, and lambda
+  function to trigger the events.
+
+- Enable versioning first; then we can create events.
+
+---
+
+## AWS Athena
+
+- It is a **Serverless** service to perform analyics directly against S3 files. 
+- Uses SQL language to query the files; and has a JDBC/ODBC driver.
+- Charged per query and amount of data scanned.
+- Supports CSV, JSON, ORC, Avro, and Parquet (Presto).
+
+- Uses cases are business intelligence / analytics / reporting, analyze & query
+  VPC Flow Logs, ELB Logs, CloudTrail trails, ...
+
+- Exam tips: How to analyze data directly on S3? Use Athena.
+
+- First, we create the database -> and create the tables.
+- This is better explained on AWS document page: how to access my logs from AWS
+  Athena.
+
+- This gives us various statics; you can query to see which request url was
+  used or how many requests failed and received 400...and so on.
+
+---
+
+## S3 Object Lock & Glacier Vault Lock
+
+- S3 Object Lock
+    - Adopt a WORM model (Write Once Read Many) model.
+    - Block an object version deletion for a specified amount of time.
+
+- Glacier Vault Lock
+    - Adopt a WORM model.
+    - Lock the polucy for future edits (can no longer be changed).
+    - For compliance reasons - company wishes to upload data on a bucket that
+      gurantees no one can delete it.
+
+- In other words, the object inside the vault cannot be deleted.
 
