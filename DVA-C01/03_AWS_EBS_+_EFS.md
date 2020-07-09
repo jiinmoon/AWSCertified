@@ -1,6 +1,5 @@
-# EC2 Storage - EBS & EFS
-
----
+EC2 Storage - EBS & EFS
+=======================
 
 ## What is an EBS Volume?
 
