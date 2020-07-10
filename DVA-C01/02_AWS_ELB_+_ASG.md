@@ -1,8 +1,8 @@
-# AWS Fundamentals: ELB & ASG
+AWS Fundamentals: ELB & ASG
+===========================
 
----
-
-## Concept of High Availability and Scalablity
+Concept of High Availability and Scalablity
+-------------------------------------------
 
 - **Scalability** means that an app or a system can adapt to changing workloads.
 
@@ -10,11 +10,12 @@
 
 - **Scalaility != High Availability**; two are linked concept, but different.
 
-### Vertical Scalability
+Vertical Scalability
+--------------------
 
 - **increasing the size of the instance.**
 
-- i.e. The call centre example. We have a junior operator and a senior operator.
+- i.e. A call centre example. We have a junior operator and a senior operator.
     A junior can take 5 calls per hour while a senior can take 10. This change
     from replacing junior to senior is the vertical scaling.
 
@@ -25,7 +26,8 @@
 
 - RDS, ElastiCache are type of services that can scale vertically.
 
-### Horizontal Scalability
+Horizontal Scalability
+----------------------
 
 - **increasing the number of instances or systems for your app**.
 
@@ -36,7 +38,8 @@
 
 - Common for web apps, or modern apps - made much easier thanks to EC2.
 
-## High Availability
+High Availability
+-----------------
 
 - It usually is linked with *horizontal scaling*.
 
@@ -48,7 +51,8 @@
 
 - Can be active (by horizontal scaling).
 
-## In terms of EC2
+In the context of EC2...
+------------------------
 
 - Vertical Scaling: increase the size of instance.
     - from t2.nano - 0.5G of RAM, 1 vCPU
@@ -62,9 +66,11 @@
 
 ---
 
-# Elastic Load Balancers (ELB)
+Elastic Load Balancers (ELB)
+----------------------------
 
-## Load Balancer
+Load Balancer
+-------------
 
 - Load balancers are **servers that forward internet traffic to multiple servers
     (say EC2 instances) downstream**.
@@ -86,10 +92,11 @@
 
 - High availability across zones.
 
-- Allows for clean separation between public/private traffic since all
-        inbound public traffic must come from ELB.
+- Allows for clean separation between public/private traffic since all inbound
+  public traffic must come from ELB.
 
 - ELB is a **manged load balaner**.
+
     - AWS gurantees that it will be working.
     - AWS takes care of upgrades, maintenance, and high avilability.
     - AWS provides only a few configuration knobs.
@@ -99,7 +106,8 @@
 
 - It will intergrate with many AWS services easily.
 
-### Health Checks
+Health Checks
+-------------
 
 - A way for Load Balancer to determine to which instance that it can forward
   traffic.
@@ -108,29 +116,26 @@
 
 - If the response is anything but 200, instance is unhealthy.
 
-## Type of AWS Load Balancers
+Type of AWS Load Balancers
+--------------------------
 
 - AWS provides three different types of managed ELBs:
 
-- **Classic Load Balancer** 
-    - very frist one; older generation.
-    - HTTP, HTTPS, TCP
-
-- **Appplication Load Balancer**
-    - version 2; newer generation.
-    - HTTP, HTTPS, WebSocket
-
-- **Network Load Balancer** 
-    - version 2
-    - TCP, TLS, UDP
+| Type | Description |
+| --- | --- |
+| Classic Load Balancer | Out-dated; HTTP, HTTPS, TCP |
+| Application Load Balancer | HTTP, HTTPS, WebSocket |
+| Network Load Balancer | TCP, TLS, UDP |
 
 - Recommened to use newer generation.
 
 - You can set up **internal** (private) or **external** (public) ELBs.
 
-## ELB Security Groups
+ELB Security Groups
+-------------------
 
-- Security groups can be attached to ELBs to handle inbound/outbound traffics.
+- Remember that security groups can be attached to ELBs to handle
+  inbound/outbound traffics.
 
 - For example, ELB may want to be able to receive HTTP/HTTPS traffic from
     anywhere. To do this, we would add two rules enabling TCP port 80/443 from
@@ -141,7 +146,8 @@
     This is also done with security group, where we will change the source to
     ELB.
 
-## ELB Summarized
+ELB Summarized
+--------------
 
 - ELBs can scale but not instantaneously - need to contact AWS for a warm-up.
 
@@ -158,22 +164,25 @@
 
 ---
 
-## Classic Load Balancer
+Classic Load Balancer
+---------------------
 
 - Supports TCP (Layer 4), HTTP, & HTTPS (Layer 7).
 - Health Checks are either TCP or HTTP based.
 - Fixed hostname: 'xxx.region.elb.amazonaws.com'.
 
-## Application Load Balancer
+Application Load Balancer
+-------------------------
 
 - Only Layer 7 based (HTTP).
-- Load balancing to multiple HTTP applications across machines (target groups).
-- Load balancing to multiple applications on the same machine (ex: containers).
+- **Load balancing to multiple HTTP applications across machines (target groups)**.
+- **Load balancing to multiple applications on the same machine (ex: containers)**.
 
 - Support HTTP/2 and WebScoket.
 - Support redirects (from HTTP to HTTPS).
 
 - Routing tables to different target groups:
+
     - Routing based on path in URL.
         - For example, `www.example/users`, and `www.example/posts` are two different paths.
             Hence, ALB can be set up to route them to different instances.
@@ -188,14 +197,16 @@
 - Has a port mapping feature to redirect to a dynamic port in ECS.
 - In comparison, we would require multiple Classic Load Balancer per app.
 
-### ALB Example: HTTP Based Traffic
+ALB Example: HTTP Based Traffic
+-------------------------------
 
 - We would have a external LAB set up that would receieve inbound traffic from
     users at various routes such as `/user` or `/search`.
 - Then, behind the ALB, we would have 'target groups' which has a group of
     instances which are dedicated to serve the specific routes.
 
-### Target Groups
+Target Groups
+-------------
 
 - ALB can route to following target groups.
 
@@ -207,7 +218,8 @@
 - ALB can route to multiple target groups.
 - Health checks are at the target group level.
 
-### ALB Summarized
+ALB Summarized
+--------------
 
 - Has a fixed hostname (xxx.region.elb.amazonaws.com).
 - App servers do not see the IP of the client directly.
@@ -223,7 +235,8 @@
 - i.e. HTTP 80 Rules can be generated such as:
     - **IF** path is `/test`, **THEN Forward to** specific target group.
 
-## Network Load Balancer
+Network Load Balancer
+---------------------
 
 - Operates at layer 4: TCP/UDP.
 - Handles millions of requests per seconds.
@@ -234,7 +247,8 @@
 - Used for extreme performance; TCP, UDP traffics.
 - There isn't a free tier.
 
-## Load Balancer Stickiness
+Load Balancer Stickiness
+------------------------
 
 - *Stickiness* allows the same client to be directed to the
     same instance behind the load balancer.
@@ -250,7 +264,8 @@
 - Enabled under Target Groups; set amount of seconds for stickness to last (1
     second to 7 days).
 
-## Cross-Zone Load Balancing
+Cross-Zone Load Balancing
+-------------------------
 
 - **It allows each load balancer instance to distribute evenly across all
   registered instances in all AZ**.
@@ -266,30 +281,25 @@
 - So, without Cross Zone Load Balancing, load balancer from AZ1 can only spread
   load to apps in AZ1.
 
-- Pricing:
-
-    - CLB
-        - Disabled by default.
-        - No charges for inter-AZ data if enabled.
-    - ALB
-        - On by default (cannot be disabled).
-        - No charges for inter-AZ data.
-    - NLB
-        - Disabled by default.
-        - Charge for innter-AZ data.
+| Type | Pricing |
+| :---: | :---: |
+| CLB | disabled by default; no charges for inter-AZ if enabled |
+| ALB | on by default; no charges for inter-AZ |
+| NLB | disabled by default; charges for inter-AZ |
 
 - Can find the Cross-Zone balancing option by selecting each running load
     balancers (without exception of ALB since it is always-on).
 
 ---
 
-## SSL/TLS Basics
+SSL/TLS Basics
+--------------
 
 - **SSL Certificate allows the traffic between your clients and your load
     balancer to be encrypted in transit (in-flight encryption)**.
 
-- SSL: *Secure Sockets Layer*, used to encrypt connections.
-- TLS: *Transport Layer Security*, newer version of SSL.
+    - **SSL**: *Secure Sockets Layer*, used to encrypt connections.
+    - **TLS**: *Transport Layer Security*, newer version of SSL.
 
 - TLS Certificates are mainly used but people would still refer to it as SSL.
 
@@ -301,7 +311,8 @@
 
 - Certificates have an expiration data and must be renewed.
 
-## Load Balancers & SSL Certificates
+Load Balancers & SSL Certificates
+---------------------------------
 
 - Users will send the encrypted HTTPS request using public SSL Certificate.
 - Load Balancer will then have to use private SSL Certificate to be able to read
@@ -320,7 +331,8 @@
     - Ability to specify a security policy to support older versions of SSL /
         TLS (legacy client).
 
-### Server Name Indication SNI
+Server Name Indication (SNI)
+----------------------------
 
 - **SNI solves the problem of loading multiple SSL certificates
     onto one web server (to serve multiple websites)**.
@@ -332,7 +344,8 @@
 
 - Only Works for ALB & NLB, CloudFront.
 
-### Elastic Load Balancers - SSL Certification
+Elastic Load Balancers - SSL Certification
+------------------------------------------
 
 - CLB
     - **Supports only one SSL Certificate**.
@@ -342,9 +355,11 @@
     - Supports mulitiple listeners with multiple SSL Certificates.
     - Uses SNI to make it work.
 
-## ELB - Connection Draining
+ELB - Connection Draining
+-------------------------
 
 - Two different names:
+
     - CLB: Connection Draining
     - Target Group: Deregistration Delay (for ALB & NLB)
 
@@ -366,25 +381,29 @@
 
 ---
 
-## ASG - Auto Scaling Group
+Auto Scaling Group (ASG)
+------------------------
 
 - The workload on websites and applications change over time.
 - In the cloud, you can create and get rid of servers very quickly.
 
 - ASG allows for:
+
     - Scaling Out (add more EC2 instances) to increase capacity.
     - Scaling In (remove EC2 instances) to save costs.
     - In short, it ensures we have max/min number of machines running to match
         the needed capacity.
     - Automatically Register new instances to a load balancer.
 
-## ASG in AWS
+ASG in AWS
+----------
 
 - Minimum Size: absolute number of machines to have on.
 - Actual Size and Desired Capacity: number of machines running currently.
 - Maximum Size: maximum capacity of machines that can be added to group.
 
-## ASG with Load Balancer
+ASG with Load Balancer
+----------------------
 
 - Load Balancer will route the traffic to the existing machines managed within
     the ASG.
@@ -392,7 +411,8 @@
     will also be alerted, and will route the traffic to the new instances as
     well**.
 
-## ASG Attributes
+ASG Attributes
+--------------
 
 - A launch configuration:
 
@@ -407,7 +427,8 @@
 - Load Balancer information.
 - Scaling Policies.
 
-## ASG Alarms
+ASG Alarms
+----------
 
 - It is possible to scale an ASG based on CloudWatch alarms.
 - **Alarm will trigger scaling to ASG**.
@@ -415,7 +436,8 @@
 - **Metrics are computed for the overall ASG isntances**.
 - Based on the alarm, we can create scale policy (add or remove instances).
 
-## Auto Scaling New Rules
+Auto Scaling New Rules
+----------------------
 
 - Defining 'better' auto scaling rules that are directly managed by EC2.
     - Target Average CPU usage.
@@ -423,7 +445,8 @@
     - Average Network In/Out
 - These rules are easier to set up.
 
-## Auto Scaling Custom Metric
+Auto Scaling Custom Metric
+--------------------------
 
 - We can auto scale based on a custom metric (i.e. number of connected users).
 
@@ -433,7 +456,8 @@
 
 3. Use CloudWatch alarm as the scaling policy for ASG.
 
-## ASG Summarized
+ASG Summarized
+--------------
 
 - **Scaling Policies can be based on any metric, or even custom metric provided by
     your application to CloudWatch or based on a schedule**.
@@ -449,7 +473,8 @@
     reason, the ASG will automatically create new ones as a replacement.
 - ASG can terminate instances marked as unhealthy by an LB and replace it.
 
-## ASG - Scaling Policies
+ASG - Scaling Policies
+----------------------
 
 - **Target Tracking Scaling**
     - Simple way to set-up.
@@ -463,7 +488,8 @@
     - Anticipate a scaling based on known usage patterns.
     - i.e. increase the minimum capacity at 6 PM on every Friday.
 
-## ASG - Scaling Cooldowns
+ASG - Scaling Cooldowns
+-----------------------
 
 - It is a cooldown period helps to ensure that your ASG does not launch or terminate
     additional instances before the previous scaling acitivity takes effect.
@@ -488,21 +514,4 @@
 - Scaling action occurs -> Default CD in effect?
     - Yes -> Ignore.
     - No -> Launch or terminate instance.
-
-## ASG - Auto Scaling
-
-- We may attach a Scaling Policy to the ASG; if we do not have one, create a new
-    Policy.
-
-- When creatin the Scaling Policy, we choose:
-
-     - Scaling Type (Target Tracking Scaling, Simple, Step).
-     - Metric Type.
-     - Value.
-
-- Say, you have creates a Scaling Policy with CPU-Utilization.
-
-- Then, CloudWatch will set up alarms to notify ASG whenever CPU-Utilization goes
-    above the target or below the target.
-
 

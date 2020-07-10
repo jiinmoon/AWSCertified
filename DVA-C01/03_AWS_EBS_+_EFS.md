@@ -1,7 +1,8 @@
 EC2 Storage - EBS & EFS
 =======================
 
-## What is an EBS Volume?
+What is an EBS Volume?
+----------------------
 
 - An EC2 machine loses its root volume when it is manually terminated.
 
@@ -13,9 +14,10 @@ EC2 Storage - EBS & EFS
 
     - It is a network drive thta you can attach to your instances while running.
 
-## EBS
+Elastic Block Store (EBS)
+-------------------------
 
-- It is a network drive (not a physical one).
+- It is a **network drive** (not a physical one).
 
     - It uses the network to communicate the instance, which means there may be
         a latency.
@@ -33,7 +35,8 @@ EC2 Storage - EBS & EFS
     - Thus, it makes sense to start small, and increase the capacity as you need
         them.
 
-## EBS Volume Types
+EBS Volume Types
+----------------
 
 | Type | Description |
 | --- | --- |
@@ -45,7 +48,8 @@ EC2 Storage - EBS & EFS
 - Difference is in their size, throughput, and IOPS.
 - SSD types can be used as boot volumes.
 
-## Creating EBS
+Creating EBS
+------------
 
 - EBS volumes can be chosen when we are creating the EC2 instance during step
   (4) add storage.
@@ -59,9 +63,8 @@ EC2 Storage - EBS & EFS
 - To do so, SSH into the running EC2 instance, make a filesystem, and mount
     the EBS volume.
 
-    > ssh -i KEYPAIR.pem ec2-user@EC2-PUBLIC-IP
-
-    > lsblk
+        ssh -i KEYPAIR.pem ec2-user@EC2-PUBLIC-IP
+        lsblk
 
 - `lsblk` will return attached devices detected to the machine.
 - Let's suppose that new EBS volume name is `xvdb`.
@@ -70,7 +73,7 @@ EC2 Storage - EBS & EFS
 - To confirm that new device does not have a file system formatted, we run
     following command.
 
-    > sudo file -s /dev/xvdb
+        sudo file -s /dev/xvdb
 
 - If `file` command returns *data*, then there is no file system. Otherwise, it
     will display filesystem information.
@@ -81,36 +84,36 @@ EC2 Storage - EBS & EFS
 - **If there was existing data (for example, mounting an snapshot of another
     volume), then we shouldn't format the volume!**
 
-    > sudo mkfs -t ext4 /dev/xvdb
+        sudo mkfs -t ext4 /dev/xvdb
 
 - Then, we need to mount to a directiory - let's say `/data`.
 
-    > sudo mount /dev/xvdb /data
+        sudo mount /dev/xvdb /data
 
 - If you want to mount this volume on every system reboot, the `/etc/fstab` file
     should also be fixed.
 
 - Good idea to create backup for the file first.
 
-    > sudo cp /etc/fstab /etc/fstab.orig
+        sudo cp /etc/fstab /etc/fstab.orig
 
 - Open up the fstab file and append following new line.
 
-    > /dev/xvdb /data ext4 defaults,nofail 0 2
+        /dev/xvdb /data ext4 defaults,nofail 0 2
 
 - To check whether new entry is working, quickly unmount and mount again.
 
-    > sudo umount /data
-
-    > sudo mount -a
-
-    > lsblk
+        sudo umount /data
+        sudo mount -a
+        lsblk
 
 ---
 
-## EBS Volume Types and Use Cases
+EBS Volume Types and Use Cases
+-----------------------------
 
-### GP2
+GP2 (SSD)
+---------
 
 - Recommended for most cases.
 - Can be system boot volumes.
@@ -122,7 +125,8 @@ EC2 Storage - EBS & EFS
 - Small GP2 volumes can burst IOPS to 3000; max at 16,000.
 - i.e. 3 IOPS per 1 GB. 16,000 IOPS for volumes greater than 5333 GB.
 
-### IOI
+IOI (SSD)
+---------
 
 - For critical business apps that require sustained IOPS performance, or more
     than 16,000 IOPS per volume.
@@ -134,7 +138,8 @@ EC2 Storage - EBS & EFS
     - MIN 100 ~ MAX 64,000 (Nitro instances), else MAX 32,000 (other instances).
 - about 50 IOPS per 1 GB.
 
-### ST1 (HDD)
+ST1 (HDD)
+---------
 
 - Streaming workloads that require consistent, fast throughput at a low price.
 - Big data, Data warehourses, Log processing.
@@ -145,7 +150,8 @@ EC2 Storage - EBS & EFS
 - Max IOPS is 500;
 - Max throughput of 500 MB/s - can burst.
 
-### SC1 (HDD)
+SC1 (HDD)
+---------
 
 - Throughput-oriented storage for large volumes of data that is infrequently
     accessed.
@@ -158,7 +164,8 @@ EC2 Storage - EBS & EFS
 
 ---
 
-## EBS vs Instance Store
+EBS vs Instance Store
+---------------------
 
 - Some instances may not come with Root EBS volumes.
 - Instead, they come with **Instance Store**, or ephemeral storage.
@@ -180,7 +187,8 @@ EC2 Storage - EBS & EFS
 
 - Main question is, are you OK with losing your data? If so, instance store.
 
-## Local EC2 Instance Store
+Local EC2 Instance Store
+------------------------
 
 - **Physical disk attached to the physical server where your EC2 is**.
 - Becuase it is physical, very High IOPS - reaching upto million.
@@ -192,7 +200,8 @@ EC2 Storage - EBS & EFS
 
 ---
 
-## Elastic File System - EFS
+Elastic File System - EFS
+-------------------------
 
 - **Managed NFS (Network File System) that can be mounted on many EC2**.
 - EFS works with EC2 instances in multi-AZ.
@@ -211,7 +220,8 @@ EC2 Storage - EBS & EFS
 - POSIX file system (Linux) that has a standard file API.
 - File System scales automatically, pay-per-use, no capacity planning.
 
-## EFS - Performance & Storage Classes
+EFS - Performance & Storage Classes
+-----------------------------------
 
 - **EFS Scale**
     - 1000s of concurrent NFS clients, 10 GB+/s throughput.
@@ -240,9 +250,11 @@ EC2 Storage - EBS & EFS
 
 ---
 
-## EBS vs EFS
+EBS vs EFS
+==========
 
-### EBS Summary
+EBS Summary
+-----------
 
 - EBS
     - attached to only one instance at a time.
@@ -257,7 +269,8 @@ EC2 Storage - EBS & EFS
 - Root EBS volume by default is terminated along with EC2 instance; but can
     disable.
 
-### EFS Summary
+EFS Summary
+-----------
 
 - Mounting 100s of instances across AZs.
 - EFS can be used to share website files.
@@ -267,10 +280,10 @@ EC2 Storage - EBS & EFS
 - About 3 times more expensive than EBS.
 - Can use EFS-IA for cost-saving.
 
-### Instance Store
+Instance Store
+--------------
 
 - Ephemeral storage.
 - Physical drive; high IOPS.
 - Lost if gone!
 
----
