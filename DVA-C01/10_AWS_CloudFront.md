@@ -94,4 +94,97 @@ CloundFront vs S3 Cross Region Replication
     - **Great for dynamic content that needs to be available at low-latency in
       few regions**.
 
+CloundFront Caching
+-------------------
+
+- Cache based on following:
+    - Headers
+    - Session Cookies
+    - Query String Parameters
+
+- The cache is located at each CloudFront **Edge Location**.
+
+- Client makes a request to Edge Location; it checks for whether requested
+  object is in cache, update appropriately based on Headers and Cookies.
+    - Cache miss? request is made forward to Origin.
+
+- _Goal is to maximize the cache hit rate_.
+- To do this, we control the TTL (0 sec to 1 yr), which can be set by the
+  origin using `Cache-Control` or `Expires` header.
+
+- Invalidate part of the cache using `CreateInvalidation` API.
+
+Maximize Cache-hits via Separating Static v Dynamic Distributions
+-----------------------------------------------------------------
+
+- Static object requests require no headers/session caching rules since we can
+  simply cache whatever we grab, and this will maximize the cache hit.
+
+- Dynamic requests need more thought on how to cache based on correct headers
+  and cookies.
+
+- Note that longer TTL increases the possibility that the users will be seeing
+  the older versions of the cached objects even when origin is updated, until
+  the TTL expires.
+
+CloudFront Security
+-------------------
+
+**CloudFront Geo Restriction**
+- A way to restrict who can access your distribution.
+    - Whitelist/Blacklist the countries.
+    - _country_ is determined by 3rd party Geo-IP database.
+    - useful for Copyright laws.
+
+**HTTPS**
+- Viewer Protocol Policy:
+    - Client to Edge Location.
+    - redirect HTTP to HTTPS or use HTTPS only.
+    - enforces encryption for traffics.
+- Origin Protocol Polcy (HTTP or S3):
+    - HTTPS only from Edge Location to Origin.
+    - Match viewer (use which ever protocol used).
+
+- Note that S3 bucket static websites do not support HTTPS.
+
+CloundFront Signed URL / Signed Cookies
+---------------------------------------
+
+- i.e. you want to distribute paid shared content to premium users over the
+  world.
+
+- CloudFront Signed URL / Cookie; we can attach a policy with:
+    - URL expiration
+    - IP ranges to access the data from
+    - trusted signers (which AWS accounts can create signed URLs)
+
+- How long should the URL be valid for?
+    - Shared content (movie, music) - make it short ~ mins.
+    - Private content (private to user) - make it last for years.
+
+- _Signed URL gives access to individual files - one signed URL per file._
+- _Signed Cookeis give access to multiple files - one signed Cookie for many
+  files_. 
+
+- i.e. suppose we have CloudFront set up with multiple Edge locations connect
+  to our S3 bucket origin via OAI - meaning objects can only be accessed via
+  CloudFront. Client wishes to access the object, thus will send the request to
+  an authentication/authorization application. The app will use AWS SDK to
+  generate the signed URL. Client then uses signed URL to request the object
+  from CloudFront.
+
+CloudFront Signed URL vs S3 Pre-Signed URL
+------------------------------------------
+
+- CloudFront Signed URL:
+    - Allow access to a path, no matter the origin.
+    - Account wide key-pair; only root can manage it.
+    - Can filter by IP, path, date, expiration.
+    - Can leverage caching features.
+
+- S3 Pre-Signed URL:
+    - Issue a request as the person who pre-signed the URL.
+    - Uses the IAM key of the signing IAM principal.
+    - Limited lifetime.
+
 
