@@ -305,3 +305,9 @@ ECS -- Service Auto Scaling
   scaling up as well.
 
 - Fargate Auto Scaling is much easier to setup due to serverless architecture.
+
+ECS -- Cluster Capacity Provider
+--------------------------------
+
+- used in association with a cluster to determine the infrastructure that
+  a task runs on.
