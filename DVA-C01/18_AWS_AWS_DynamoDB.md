@@ -424,11 +424,203 @@ The Lambda function is invoked synchronously.
 DynamoDB TTL (Time to live)
 ---------------------------
 
-- TTL will automatically delete an item after an expiry date / time.
-- TTL is provided at no extra cost, deletions do not use WCU / RCU.
+- TTL will automatically delete an item after an expiry date and time.
+- TTL is provided at no extra cost, deletions do not use WCU and RCU.
 - It is a background task performed periodically.
 - Helps reduce storage and manage the table size over time.
 - TTL is enalbed per row.
 - DynamoDB typically deletes expired items within 48 hours of exirations.
+- Deleted item due to TTL are also deleted from GSI and LSI.
+- DynamoDB Streams can help recover expired items.
+
+- Insert Epoch time stamp as a new attribute; under the settings, we can enable
+  TTL based on a attribute.
+
+DynamoDB CLI -- Good to know
+----------------------------
+
+- `--projection-expression` : attributes to retrieve
+- `--filter-experssion` : filter results
+
+- General CLI pagination options including DynamoDB and S3:
+    - Optimization:
+        - `--page-size` : full dataset is still required; but each API call
+          will request less data (avoids timeouts).
+    - Pagination:
+        - `--max-itesm` : max number of results returned by the CLI; returns
+          `NextToken`.
+        - `--starting-token` : specify the last received `NextToken` to keep on
+          reading.
+
+Examples of CLI commands:
+
+- Using projction expression:
+
+
+    $ aws dynamodb scan -table-name UserPosts --projection-expression "user_id, content" --region us-west-1
+
+
+- Using filter expression: filters by all rows which have `user_id` equal to
+  String value "124user01".
+
+
+    $ aws dynamodb scan --table-name UserPosts --filter-expression "user_id = :u" --expression-attribute-values '{ ":u": {"S":"124user01"}}' --region us-west-1`
+
+
+- Using max-items: returns only specified number of max-items (rows) at a time.
+  It will return next token so that we can continue from last position in the
+  row (Pagination).
+
+
+    $ aws dynamodb scan --table-name UserPosts --region us-west-1 --max-items 1
+    $ aws dynamodb scan --table-name UserPosts --region us-west-1 --max-items 1 --starting-token ejKHSJHFneLOJHHlnqHSLJHLKJHFJHDJF
+
+
+DynamoDB Transactions
+---------------------
+
+- Transactions refer to ability to create, update and delete multiple rows in
+  different tables at the same time (similar to RDMS databases).
+
+- This is "all or nothing" operations.
+
+- Write Modes: Standard, _Transactional_
+
+- Read Modes: Eventual Consistency, Strong Consistency, _Transactional_
+
+- It consumes twice the WCU and RCU.
+
+- In short, _transcation is a write to both tables or none_.
+
+DynamoDB as Session State Cache
+-------------------------------
+
+- It is common use case to use the DynamoDB to store the session state.
+
+- compared to ElastiCache:
+    - ElastiCache is in-memory, but DynamoDB is serverless + auto scales.
+    - Both are key-value stroes.
+- compared to EFS (disk storage):
+    - EFS must be attached to EC2 instances as a network drive.
+- compared to EBS and Instance Store:
+    - EBS and Instance Store can only be used for local caching; not shared.
+- compared to S3:
+    - S3 has higher latency; it is not suitable for small objects.
+
+DynamoDB Write Sharding
+-----------------------
+
+- Suppose we have a voting application with two candidates, A and B.
+- If we use a partition key of candidate\_id, it will run into partitions
+  issues as there are only two partitions.
+- Solution is to add a suffix (usually _random suffix_).
+
+| **Partition Key** | **Sort Key** | **Attributes** |
+| --- | --- | -- |
+| **CandidateID + RandomSuffix** | **VoteDate** | **VoterID** |
+| CandidateA-1 | 2020-01-01-108855 | 253342 |
+| CandidateA-1 | 2020-01-09-120023 | 253344 |
+| CandidateA-2 | 2020-01-21-170256 | 012342 |
+| CandidateB-1 | 2020-02-03-010203 | 929392 |
+
+DynamoDB -- Write Types
+----------------------
+
+**Concurrent Writes**
+
+- Two users updating a same item with different values; in this case, second
+  write will overwrite the first.
+
+**Conditional Writes**
+
+- A way to mitigate the above problem: add condition to write - that write only
+  if the current value is the last we have seen. The second write will fail now
+  since the value would have changed and knows to avoid concurrent.
+
+**Atomic Writes**
+
+- Another way to avoid concurrent problem; instead of overwriting values, the
+  users will either INCREASE or DECREASE the existing value in the table. The
+  result would be TOTAL of changes registered.
+
+**Batch Writes**
+
+- Simply pool the transactions; write and update many items at a time.
+
+DynamoDB -- Large Objects Pattern
+---------------------------------
+
+- DynamoDB can get expensive with large objects since its maximum item size is
+  400 KB.
+
+- A pattern that can deal with large objects is to first have the client send
+  the large data to S3 bucket. The metadata of that large data will be inserted
+  to the DynamoDB.
+- Thus, another client requiring that data will read the metadata from DynamoDB
+  to find where the object is in S3, and retrieve from there.
+
+DynamoDB -- Indexing S3 objects metadata
+----------------------------------------
+
+- After writing a file to S3 bucket, we cannot index it efficiently - cannot
+  sort by size, date or etc.
+- A way to solve this problem is to set up S3 event notification to trigger
+  Lambda function that will record the metadata to the DynamoDB such that
+  clients can instead use DynamoDB to index the files, and retrieve from S3 if
+  necessary.
+
+- This will support metadata such as:
+    - search by date
+    - total storage used by a customer
+    - list of all objects with certain attributes
+    - find all objects uploaded within a date range
+
+DynamoDB Operations
+-------------------
+
+**Table Cleanup**
+
+- Option 1 : scan and delete every item (row); very slow, expensive, consumes
+  RCU and WCU.
+
+- Option 2 : drop table and recreate table; fast, cheap, efficient.
+
+**Copying a DynamoDB Table**
+
+- Option 1: use AWS DataPipeline (EMR)
+    - DataPipeline launches in EMR; reads from DynamoDB Table and writes to S3
+      Bucket.
+    - Then, import the data stored within the S3 Bucket back to new DynamoDB
+      Table.
+
+- Option 2: create a backup and restore the backup into a new table name (may
+  take some time).
+
+- Option 3: scan and write - needs manual code.
+
+DynamoDB -- Security and Other Features
+---------------------------------------
+
+**Security**
+
+- VPC Endpoints available to access DynamoDB without internet.
+- Access fully controlled by IAM.
+- Encryption at rest using KMS.
+- Encryption in transit using SSL/TLS.
+
+**Backup and Restore feature**
+
+- Point in time restore (like RDS).
+- No performance impact.
+
+**Global Tables**
+
+- Multi-region, fully replicated and high in performance.
+
+**Amazon DMS can be used to migrate to DynamoDB from Mongo, Oracle, MySQL,
+S3...**
+
+**You may launch a local DynamoDB on local machine for development purposes.**
+
 
 
