@@ -283,3 +283,184 @@ API Gateway -- Logging and Tracing
 - Can override settings on a per API basis (i.e. ERROR, DEBUG, INFO).
 - Log contains information about request and response body.
 
+**X-Ray:**
+
+- Enable tracing to get more information about requests in API Gateway.
+- X-Ray API Gateway and Lambda will give you full picture.
+
+API Gateway -- CloudWatch Metrics
+---------------------------------
+
+- Metrics are enabled by stage.
+- `CacheHitCount` and `CacheMissCount` show efficiency of the cache.
+- `Count` is the toal number of API requests in a given period.
+- `IntegrationLatency` is the time between when API Gateway relays a request to
+  the backend and when it receives a response from the backend.
+- `Latency` is the time beween when API Gateway receives a request from
+  a client and when it returns a reponse to the client (so it includes
+  integration lantecy and overheads).
+
+- `4XX` Error (client side)
+- `5XX` Error (server side)
+
+API Gateway -- Throttling
+-------------------------
+
+- **Acount Limit**
+    - API Gateway throttles requests at 10000 rps across all API.
+    - Soft limit that can be increased upon request.
+
+- In case of throttling, it will return `429 Too Many Requests` (retriable
+  error).
+
+- Set **State Limit** and **Method Limit** to improve performance.
+- Set **Usage Plans** to throttle per customer.
+
+- _Like Lambda concurrency, one API being overloaded can cause the other APIs
+  to be throttled (so use limits wisely)._
+
+API Gateway -- Errors
+---------------------
+
+**4XX** Client errors
+
+- 400: bad request
+- 403: access denied, WAF filtered
+- 429: quota exceeded, throttle
+
+**5XX** Server errors
+
+- 502: bad gateway exception; usually for an incompatible output returned from
+  a Lambda proxy integration backend and occasionally for out-of-order
+  invocations due to heavy loads.
+- 502: service unavilable exception.
+- 504: integration failure (i.e. Endpoint Request Timed-out Exception) API
+  Gateway requests times out after 29 second max.
+
+API Gateway -- CORS
+-------------------
+
+- Cross-Origin Resource Sharing must be enabled when you recieve API calls from
+  another domain.
+- `OPTIONS` pre-flight request must contain the following headers:
+    - `Access-Control-Allow-Methods`
+    - `Access-Control-Allow-Headers`
+    - `Access-Control-Allow-Origin`
+- CORS can be enabled through the console.
+
+i.e. Web Browser has accessed the S3 bucket statically hosted website at Origin
+`https://www.example.com`; and it directs browser to access the Cross Origin
+`https://api.example.com`. Browser will first send preflight request (HTTPS
+OPTIONS) to Cross Origin, and API Gateway sends preflight response back. Then,
+the browser and API Gateway can now communicate with one another (i.e. now able
+to send GET requests to https://api.example.com).
+
+API Gateway -- Security
+-----------------------
+
+**IAM Permissions**
+
+- create an IAM policy authorization and attach to User / Role.
+- Authentication via IAM and Authorization via IAM Policy.
+- Good to provide access within AWS (EC2, Lambda, IAM users...).
+- uses `Sig v4` capability where IAM credential are in headers.
+
+i.e. Client makes the REST API call to API Gateway where its header contains
+the Sig v4. API Gateway will decrypt and check against IAM Policy to whether
+the client is authorized to make the call.
+
+**Resource Policies**
+
+- Resource policies are similar to Lambda resource policy.
+- allow for cross account access (combined with IAM Security).
+- allow for a specific source IP address.
+- allow for a VPC endpoint.
+
+**Cognito User Pools**
+
+- Cognito is a database of user pools.
+- Cognito fully manages user lifecycle, token expires automatically.
+- API Gateway verifies identity automatically from AWS Cognito.
+- No custom implementation is needed.
+- Authentication via Cognito User Pools and Authorization via API Gateway
+  Methods.
+
+i.e. Clent first authenticate to Cognito User Pools to retrieve the connection
+token. Then, makes REST API request to API Gateway with the Token, and API
+Gateway evaluates the Cognito token. If correct, it will allow access to the
+backend.
+
+**Lambda Authorizer**
+
+- Token-based authorizer (bearer token).
+- i.e. JWT (JSON Web Token) or Oauth.
+- A _request paraemter-based Lambda authorizer)_ (headers, query string,
+  stage variable).
+- Lambda must return an IAM policy for the user, result policy is cached.
+- Authentication via External and Authoriation via Lambda function.
+
+i.e. Client first authenticate to third party auth-system to receive a token.
+Then, it makes a request with bearer token or request parameters. API Gateway
+looks at the context and token, or request params against Lambda Authorizer to
+determine whether to allow access to backend. Lambda Authorizer will examine
+and return IAM Principal and IAM Policy - this is done once and will be cached
+in API Gateway.
+
+
+API Gateway -- Security Summary
+-------------------------------
+
+**IAM**
+
+- Good for users and roles already within your AWS account; and resource policy
+  for across account.
+- Handling authentication and authorization.
+- Leaverges Sig v4.
+
+**Custom Authorizer**
+
+- Great for third party tokens.
+- Very flexible in terms of what IAM policy is returned.
+- Handle Authentication verification and Authorization in the Lambda function.
+- Pay per Lambda function invocation; results are cached.
+
+**Cognito User Pool**
+
+- Manage your own user pool (can be backd by Fackbook, Google Login, etc).
+- Do not require custom code.
+- Must implement authroization in the backend.
+
+API Gateway -- HTTP API vs REST API
+-----------------------------------
+
+**HTTP APIs**
+
+- low-latency, cost-effective AWS Lambda proxy, HTTP proxy APIs and private
+  integration (no data mapping).
+- support OIDC and OAuth 2.0 authorization, and built-in support for CORS.
+- No usage plans and API keys.
+
+**REST APIs**
+
+- All features available except Naitive OpenID Connect and OAuth 2.0.
+
+API Gateway -- WebSocket API
+----------------------------
+
+**WebSocket?**
+
+- It is a two-way interactive communication between a user's browser and
+  a server.
+- Server can push information to the client.
+- This enables stateful application use cases.
+
+- WebSocket APIs are often used in _real-time_ applications such as chat
+  applications, collaboration platforms, multiplayer games and financial
+  trading platforms.
+
+- It works with AWS Services (Lambda, DynamoDB) or HTTP endpoints.
+
+
+
+
+
