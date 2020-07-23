@@ -5,29 +5,23 @@ AWS Regions
 -----------
 
 - **Region** is a cluster of data centres.
-- AWS is a global cloud provider; it has many data centres (Regions) around
-  the world. 
-- Naming conventions: i.e. `us-east1`, `eu-west-2`, `ap-east-1`.
+- AWS is a global - it has many data centres (Regions) around the world. 
+- Naming conventions are i.e. `us-east1`, `eu-west-2`, `ap-east-1`.
 - Most AWS Services will be per region basis.
 
 AWS Availability Zones (AZ)
 ---------------------------
 
-- Each region has many AZs (~ 2 to 6).
-
-- i.e. a Sydney region may have: ap-southeast-2a; ap-southeast-2b; and
+- Each region has many AZs (from 2 to 6).
+- i.e. a Sydney region may have: ap-southeast-2a, ap-southeast-2b and
   ap-southeast-3c.
-
 - Each **AZ** is one or more discrete data centers with redundant power,
   networking, and connectivity.
-
 - AZs are located physically separated locations. Thus, they are isolated from
   disasters since another AZ in the same region will be operating even if an AZ
   goes down.
-
 - AZs are connected to each other via high bandwidth, ultra-low latency
   networking.
-
 - On the management console, you will see your current region setting on the
   top right corner.
     - And when you switch between the AWS services, you will see the scope
@@ -42,17 +36,14 @@ IAM Introduction
 
 - **Identity and Access Management** (IAM)
 
-- It is where you can manage sercurity for *users, groups, and roles*.
+- It is where you can manage sercurity for *users, groups and roles*.
 - **Root account should never be used**.
     - Root account is the very first AWS account you have created.
     - Remember the cardinal rule of security: *minimum required permissions*.
-
 - IAM is the control center of AWS which  manages the access control for services
   via security policies and roles.
-
 - **Policy** is a permission control that is written in JSON format - we attach
   policies to components to enfore permissions.
-
 - Within IAM, we have following components:
     - **Users** : usually a physical person such as a developer, a sys admin,
       or a HR employee.
@@ -61,9 +52,7 @@ IAM Introduction
     - **Roles** : used for internal usage within AWS resources (machines).
 
 - Note: changes made with IAM is applied **globally**.
-
 - Multifactor-Authentication (MFA) can be set-up, and is strongly recommended.
-
 - There is already a list of predefined *managed policies* so that you may not
   have to write the JSON from scratch and ground up. And there is also a policy
   generator.
@@ -73,14 +62,12 @@ IAM Federation
 
 - It is a way for enterprise companies to integrate their own existing
   repository of users with IAM.
-
 - This allows users of these companies to log into AWS using their company
   credentials.
-
 - Identity Federation uses the SAML standard (Active Directory).
 
-IAM 101 - UCS: Use Common Sense
--------------------------------
+IAM -- Use Common Sense
+-----------------------
 
 - 1 User = 1 Physical Person. **Never share your account**.
 
@@ -98,16 +85,18 @@ IAM 101 - UCS: Use Common Sense
 EC2 Introduction
 ----------------
 
-- **Elastic Compute Cloud** (EC2) is capable of:
+- **Elastic Compute Cloud** (EC2)
+
+- It is capable of:
     - renting virtual machines (EC2)
     - storing data on virtual drives (EBS - Elastic Block Storage)
     - distributing load across machines (ELB - Elastic Load Balance)
-    - scaling the services using an auto-scaling group (ASG - Auto-Scaling
-      Group)
+    - scaling the services using an auto-scaling group (ASG)
 
-- EC2 is *region-based service*.
+- EC2 is a *region-based service*.
 
 - When creating your EC2 instance:
+
     1. Choose your AMI (Amazon Machine Image)
         - the software environment such as which Linux distro is it running on.
     2. Choose your Instance type
@@ -138,18 +127,18 @@ EC2 Introduction
 
 - Created EC2 instances can be controlled via SSH into their public IP.
 
-        ssh ec2-user@<EC2-IP4>
+        $ ssh ec2-user@<EC2-IP4>
 
 
 - But this requires the key-pair credentials that we were given previously.
   Supply that '.pem' key file to SSH.
 
-        ssh ec2-user@<EC2-IP4> -i KEYPAIR.pem
+        $ ssh ec2-user@<EC2-IP4> -i KEYPAIR.pem
 
 - Note: you will get an error that key file has 0644 permission.
 - **This is your private key that should be unavailable to others**.
 
-        chmod 0400 KEYPAIR.pem
+        $ chmod 0400 KEYPAIR.pem
 
 - Now, you should be able to SSH into the running EC2 instance.
 
@@ -164,9 +153,9 @@ EC2 Introduction
 Security Groups Introduction
 ----------------------------
 
-- Main method for network security in AWS;
+- Main method for network security in AWS.
 
-- It allows control over inbound/outbound traffics in/from the EC2 instances.
+- It allows control over in/outbound traffics into and from the EC2 instances.
 
 - In short, they are **firewalls** on EC2.
 
@@ -199,6 +188,7 @@ Security Groups Introduction
 - By default, all inbound is blocked; all outbound is authorized.
 
 - Security groups can reference each other.
+
     - i.e. An EC2 instance has a security group 1 that authorises access from
       another security group 2. Then, another EC2 instance belonging to
       security group 2 will be able to access the EC2 instance with security
@@ -236,8 +226,8 @@ Private vs Public IP Differences
     - It is used within the private subnet.
     - It only has to be unique within its own network.
     - **Gateway** (or proxy) is used to connect to the web.
-    - A router is usually the gateway, and it handles the **port
-      forwarding**. It does so by mapping its own IP:port to private IP. Thus,
+    - A router is usually the gateway, and it handles the **port forwarding**.
+      It does so by mapping its own IP:port to private IP. Thus,
       traffic from/to that private IP is masked over router's IP and port.
     - This is reason behind why a machine behind the gateway appears to send
       the request from the IP of the router (and not the private IP assigned to
@@ -246,9 +236,9 @@ Private vs Public IP Differences
 Elastic IP
 ----------
 
-- **EC2 Public IP can change when it restarts**. Thus, if you requre
-  a **fixed** public IP to identify the EC2 instance over the www, you need an
-  **Elastic IP (EIP)**.
+- **EC2 Public IP can change when it restarts**.
+- Thus, if you require a **fixed** public IP to identify the EC2 instance over
+  the www, you need an **Elastic IP (EIP)**.
 
 - **Elastic IP** is a fixed public IPv4 that you can *own* so long as you don't delete.
 
@@ -256,11 +246,9 @@ Elastic IP
   software by rapidly remapping the address to another instance in your
   account.
 
-- By default, you can only have upto 5 Elastic IP in your account.
-    - Need more? ask AWS.
+- By default, you can only have upto 5 Elastic IP in your account (Need more? ask AWS).
 
 - **Best practice is to avoid using Elastic IP**.
-
     - They are too simple; and often reflect poor architectural decisions.
     - Unsecure to way to directly expose your AWS service with EIP.
     - Instead, better approach would be to use a random public IP and register
@@ -278,12 +266,12 @@ How does it work with EC2?
 - We connect to EC2 instance with the public IP since we are not on the same
   internal network as it is.
 
-- Again, **when Ec2 machine stops and start again, public IP can change**.
+- **When Ec2 machine stops and start again, public IP can change**.
 
 - SSH into the running EC2 instance, and then check its IP.
 
-        ssh ec2-user@<EC2-PUBLIC-IP> -i KEYPAIR.pem
-        ifconfig -a
+        $ ssh ec2-user@<EC2-PUBLIC-IP> -i KEYPAIR.pem
+        $ ifconfig -a
 
 - Under the ethernet interface (eth0), note that its inet IPv4 is the
   private IP; not the same public IP used to SSH.
@@ -302,16 +290,16 @@ Side Activity: Creating Apache Web Server on EC2
 - First, ssh into the running EC2 instance. Elevate your privilege to update
   the software packages, and then install apache web server.
 
-        ssh ec2-user@<EC2-PUBLIC-IP> -i KEYPAIR.pem 
-        sudo su yum update -y yum install
-        httpd -y
+        $ ssh ec2-user@<EC2-PUBLIC-IP> -i KEYPAIR.pem 
+        $ sudo su yum update -y yum install
+        $ httpd -y
 
 - Then, we will start the Apache service and check that it is running; and
   serving the web page.
 
-        service httpd start 
-        service httpd status 
-        curl http://localhost
+        $ service httpd start 
+        $ service httpd status 
+        $ curl http://localhost
 
 - However, when you visit the EC2 instance on your browser, it will not work.
   This is because of **security group** as we discussed earlier.
@@ -329,7 +317,7 @@ Side Activity: Creating Apache Web Server on EC2
 EC2 User Data
 -------------
 
-- It is possible to bootstrap our instances using an EC2 User data script;
+- It is possible to bootstrap our instances using an **EC2 User Data** script.
 
 - **Bootstrapping** means automatically executing set of commands when the
   machine starts up.
@@ -383,8 +371,8 @@ EC2 Instance Launch Types
 | **Dedicated Hardware** | no one will share the hardware |
 | **Dedicated Hosts** | book an entire physical server; control instance placement |
 
-EC2 On-Demand
--------------
+EC2 Instance Type -- On-Demand
+------------------------------
 
 - Pay per usage (billing per second, after first min).
 - Has the highest cost but no upfront payment.
@@ -393,8 +381,8 @@ EC2 On-Demand
 - **Recommended for short-term and un-interrrupted workloads**.
     - i.e. you cannot predict how the application will behave.
 
-EC2 Reserved Instances
-----------------------
+EC2 Instance Type -- Reserved Instances
+---------------------------------------
 
 - 75% discount vs On-Demand.
 - Pay up-front for long term commitment - 1 or 3 years.
@@ -409,8 +397,8 @@ EC2 Reserved Instances
     - only launch within time window reserved.
     - for when you need to run only a fraction of day / week / month.
 
-EC2 Spot Instances
-------------------
+EC2 Instance Type -- Spot Instances
+-----------------------------------
 
 - Upto 90% discount vs On-Demand.
 - **Instance can be _lost_ at any point in time if the price you have specified
@@ -428,8 +416,8 @@ EC2 Spot Instances
     - i.e. running web server on EC2 instance. You may want to spin up extra
       web servers during a peak times such as weekends when traffic increases.
 
-EC2 Dedicated Hosts
--------------------
+EC2 Instance Type -- Dedicated Hosts
+------------------------------------
 
 - A dedicated, physical EC2 server.
 - Full control of EC2 Instance Placement.
@@ -439,8 +427,8 @@ EC2 Dedicated Hosts
 - Useful for software that have complicated licensing model (BYOL), or for
   company that have a regulatory requirements to fulfill.
 
-EC2 Dedicated Instances
------------------------
+EC2 Instance Type -- Dedicated Instances
+----------------------------------------
 
 - Instances running on hardware that is dedicated only to you.
 - May share hardware with other instances in same account.
@@ -462,8 +450,8 @@ Choosing the right instance type
 
 ---
 
-EC2 ENI
--------
+EC2 Elastic Network Interface
+-----------------------------
 
 - **Elastic Network Interface** (ENI)
 
@@ -547,7 +535,7 @@ EC2 Instances Overview
     - Network
     - GPU
 
-- https://aws.amazon.com/ec2/instance-types/
+- More at <https://aws.amazon.com/ec2/instance-types>.
 
 - R/C/P/G/H/X/I/F/Z/CR is used to denote specialization of their RAM, CPU, I/O,
     Network, and GPU capabilities.
