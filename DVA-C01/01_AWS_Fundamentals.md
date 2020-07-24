@@ -8,9 +8,9 @@ AWS is a global cloud service provider; hence, its infrastructure spans across
 the globe scale. AWS has **Regions** which is a cluster of data centeres which
 are spread across the world.
 
-This is important since most AWS services will be **Region-basis**, and will
+This is important since most AWS services will be **region-basis**, and will
 require extra work to get them working if the services are trying to work with
-each other.
+each other cross region.
 
 It has name designation as follows: i.e. `us-east-1`, `ap-south-1`, etc.
 
@@ -115,7 +115,7 @@ supply the credential (previous `.pem` file).
         $ ssh ec2-user@EC2-PUBLIC-IP -i KEYPAIR.pem
 
 Notice that this will result in an error saying that **`.pem` file has 0644
-permission`; this is a reminder that your private key should be unavailable to
+permission; this is a reminder that your private key should be unavailable to
 others**. Modify the permission and we should be able to SSH in successfully.
 
         $ chmod 0400 KEYPAIR.pem
