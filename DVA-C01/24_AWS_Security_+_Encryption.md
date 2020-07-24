@@ -183,3 +183,250 @@ KMS Symmetric -- API Summary
       it).
 - `Decrypt` : decrypt upto 4 KB of data (including DEK).
 
+KMS Request Quotas
+------------------
+
+- When exceed a request quota, `ThrottlingException`.
+- To remedy, try **exponential backoff** strategy.
+- For cyptographic operations, they share a quota.
+- This includes requests made by AWS on your behalf as well (i.e. SSE-KMS).
+- For `GenerateDataKey`, consider using DEK caching from the Encrption SDK.
+- Otherwise, request for Quotas increase through API or AWS support.
+
+KMS and Lambda function example
+-------------------------------
+
+Suppose that we wish to create a Lambda function to access the database. We do
+not want to store the database credentials in the code itself. Using
+envrionment variable would be better, but what would be better is using the
+encryption settings on the envrionment variables.
+
+You can set encryption in transit as well as use KMS key to encrypt at rest.
+
+Then in the code, grab the envrionment variable of encrypted password and
+decrypt it using the AWS SDK (i.e. `boto3` for Python) into plaintext.
+
+But you need to make sure that IAM policy has been properly set such that the
+Lambda function can use `decrypt` API. i.e. attach an inline policy to Lambda
+function that allows decrypt action on KMS.
+
+S3 Ecnryption for Objects
+-------------------------
+
+There are 4 methods of encrypting objects in S3:
+
+- SSE-S3 : encrypts using keys handled and managed by AWS.
+- SSE-KMS : uses KMS to manage encryption keys.
+- SSE-C : uses custom keys maanged by you.
+- Client Side Encryption
+
+_Important: know which one is used in which situations_.
+
+SSE-KMS
+-------
+
+- SSE-KMS : encryption using keys handled and managed by KMS.
+- KMS Advantages : user control and audit trail.
+- Object is encrypted server side.
+- Must set header : `"x-amz-server-side-encryption":"aws:kms"`.
+
+SSE-KMS leverages the `GenerateDataKey` and `Decrypt` KMS API calls since the
+objects being encrypted in S3 are likely greater than 4 KB. These API calls
+will be logged in CloudTrail.
+
+To perform SSE-KMS, you need:
+
+- A KMS Key Policy that authorizs the user and role.
+- An IAM Policy that authorizes access to KMS.
+- Otherwise, access will be denied (error).
+
+These S3 calls to KMS for SSE-KMS will count towards KMS limits.
+
+- In case of throttling, try exponential backoff.
+- If it does not improve, request to increase in KMS limits.
+- Thus, the service throttling issue is not within S3 but in KMS.
+
+S3 Bucket Policy -- Force SSL
+-------------------------------
+
+- To force SSL, create a S3 bucket policy with a **DENY** on the condition
+  `aws:SecureTranspot = false`.
+
+- Note: using an allow on `aws:SecureTransport = true` would allow anonymous
+  `GetObject` if using SSL.
+
+S3 Bucket Policy -- Force Encryption of SSE-KMS
+-----------------------------------------------
+
+- Deny incorect encryption header; make sure that it cludes `aws:kms`.
+
+- Deny no encryption header to ensure objects are not uploaded un-encrypted.
+
+---
+
+SSM Parameter Store
+-------------------
+
+- Secure storage for configuration and secrets.
+- Optional Seamless Encryption using KMS.
+- Serverless, scalable, durable, easy SDK.
+- Version tracking of configurations and secrets.
+- Configuration management using path and IAM.
+- Notifications with CloudWatch Events.
+- Integration with CloudFormation.
+
+SSM Parmeter Store Hierarchy
+----------------------------
+
+- A tree structure (i.e. just like `pass`).
+- It is like a file system.
+
+    /my-company/
+        /my-app/
+            /dev/
+                /db-url
+                /db-password
+            /prod/
+                /db-url
+                /db-password
+        /other-app/
+            ...
+
+- Reference as `/aws/reference/secretsmanager/secret_ID_in_Secrets_Manager`.
+
+SSM Parameter -- Standard and Advanced Parameter tiers
+------------------------------------------------------
+
+- Standard stores 10,000 parameters; 100,000 for advanced.
+- Max size is 4 KB for standard and 8 KB for advanced.
+- Only advanced tier allows for Parameter policies.
+- Free to use and store in standard; Advanced has fees.
+- API interactions for standard only pays on higher throughput; advanced tier
+  pays on normal API interactions as well $0.05 per 10,000 interactions.
+
+SSM Parameter -- Parameter Policies (advanced parameter tiers)
+--------------------------------------------------------------
+
+- Allows for assignment of a TTL to a parameter (expiration date) to force
+  updating or deleting sensitive data such as passwords.
+- Can assign multiple policies at a time.
+
+i.e. example of Expiration (delete a parameter) :
+
+```json
+{
+    "Type":"Expiration",
+    "Version":"1.0",
+    "Attributes":{
+        "Timestamp":"2020-12-02T21:24:22.000Z"
+    }
+}
+```
+
+i.e. example of ExpirationNotification (CW Events) : 
+
+```json
+{
+    "Type":"ExpirationNotificatoin",
+    "Version":"1.0",
+    "Attributes":{
+        "Before":"15",
+        "Unit":"Days"
+    }
+}
+```
+
+i.e. example of NoChangeNofitication (CW Events) :
+
+```json
+{
+    "Type":"NoChangeNotification",
+    "Version":"1.0",
+    "Attributes":{
+        "After":"10",
+        "Unit":"Days"
+    }
+}
+```
+
+SSM Parameter Store with Lambda
+-------------------------------
+
+```python
+import boto3
+import os
+
+ssm = boto3.client('ssm', region_name='us-west-1')
+devOrProd = os.environ['DEV_OR_PROD']
+
+def lambda_handler(event, context):
+    db_url = ssm.get_parameters(Names=["/my-app/" + devOrProd + "/db-url"])
+    db_password = ssm.get_parameters(Names=["/my-app/" + devOrProd + "/db-password"], WithDecryption=True)
+    # code
+```
+
+- Make sure that the Lambda function has the correct permissions to access the
+  SSM parameters. Attach additional IAM policy that allows `GetParameters`.
+- Also, when decrypting a secret that is encrpyt with KMS key, the Lambda
+  function also requires an additional IAM policy to allow `decrpyt` API calls.
+- Because of the tree like structure of parameters, you can easily change the
+  parameters on the fly depending on the environment variable set within the
+  funcion or stage.
+
+---
+
+AWS Secrets Manager
+-------------------
+
+- Newer service, meant for stroing secrets.
+- Capability to force **rotation of secrets** every X days.
+- Automate generation of secrets on rotation (uses Lambda).
+- Integration with **Amazon RDS** (MySQL, PostgreSQL, Aurora).
+- Secrets are encrypted using KMS.
+- **Mostly meant to be used with RDS**.
+
+SSM Parameter Store vs Secrets manager
+--------------------------------------
+
+**Secrets Manager** :
+
+- Is costlier ($$$).
+- Automatic rotation of secrets with AWS Lambda.
+- Integration with RDS, Redshift, DocumentDB.
+- KMS encryption is mandatory.
+- Can integrate with CloudFormation.
+
+**SSM Parameter Store** :
+
+- Free tier avaialble and cheaper ($).
+- Simplier API.
+- No secret rotation.
+- KMS encryption is optinal; allows for plaintext storage.
+- Can integrate with CloudFormation.
+- Can pull a Secrets Manager secret using the SSM Parameter Store API.
+
+---
+
+CloudWatch Logs -- Encryption
+-----------------------------
+
+- You may encrypt CloudWatch logs with KMS keys.
+- Encryption is enabled at the log group level, by associating a CMK with a log
+  group, either when you create the log group or after it exists.
+- You cannot associate a CMK with a log group using the CloudWatch console.
+- You must use the CloudWatch Logs API:
+    - `associate-kms-key` : if the log group already exists.
+    - `create-log-group` : if the log group does not exist yet.
+
+Code Build Security
+-------------------
+
+- To access resources in your VPC, needs to specify a VPC configurations for
+  your CodeBuild.
+
+- Secrets in CodeBuild:
+    - **Do not store them as plaintext in env variables**.
+    - Instead, env variabls can reference parameter store or secrets manager.
+
+
+
