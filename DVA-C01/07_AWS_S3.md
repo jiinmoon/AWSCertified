@@ -204,7 +204,7 @@ it is allowed.
         <AllowedOrigin>origin-bucket-url</AllowedOrigin>
         <AllowedMethod>GET</AllowedMethod>
         <MaxAgeSeconds>3000</MaxAgeSeconds>
-        <AllowedHeader>Authorization</AllowedHeader.
+        <AllowedHeader>Authorization</AllowedHeader>
     </CORSRule>
 </CORSConfiguration>
 ```
