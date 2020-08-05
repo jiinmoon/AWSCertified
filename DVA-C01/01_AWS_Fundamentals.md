@@ -4,15 +4,15 @@
 AWS Regions
 -----------
 
-AWS is a global cloud service provider; hence, its infrastructure spans across
-the globe scale. AWS has **Regions** which is a cluster of data centeres which
-are spread across the world.
+AWS infrastructure spans across the globe scale. 
 
-This is important since most AWS services will be **region-basis**, and will
-require extra work to get them working if the services are trying to work with
-each other cross region.
+AWS has **Regions** which is a cluster of data centeres which are spread across
+the world.
 
-It has name designation as follows: i.e. `us-east-1`, `ap-south-1`, etc.
+Most AWS services will be **region-basis** - it will require extra work to get
+them working if the services are trying to work with each other cross region.
+
+Region name designations are i.e. `us-east-1`, `ap-south-1`, etc.
 
 More info at
 [here](https://aws.amazon.com/about-aws/global-infrastructure/regions_az/).
@@ -20,16 +20,17 @@ More info at
 AWS Availability Zones (AZs)
 ----------------------------
 
-Each of the **Regions** are subdivided into many **Availability Zones** (from
-2 to 6). For example, within the `us-east-1` region, it may have:
+Within a region, there are **Availability Zones** (from 2 to 6).
+
+For example, within the `us-east-1` region, it may have 3 AZs which are
 
 - `us-east-1a`
 - `us-east-1b`
 - `us-east-1c`
 
-Each of these **AZs** is its own independent data centres with redundant power,
-networking, and connectivity. This is to provide a _disaster recovery_ and
-a _high availability_.
+Each AZ has its own independent data centres with redundant power, networking,
+and connectivity. This is to provide a _disaster recovery_ ( _high
+availability_).
 
 While physically separated, the AZs are connected to each other via high
 bandwidth internal network connections.
@@ -39,7 +40,7 @@ bandwidth internal network connections.
 AWS Identity and Access Management (IAM)
 ----------------------------------------
 
-IAM is a globally scoped, central control point of AWS security; here you can
+IAM is a **globally scoped**, central control point of AWS security; here you can
 manage:
 
 - Users (usually a physical person)
@@ -58,7 +59,7 @@ company credentials. It uses the SAML standard (Active Directory AD).
 Best practices for security management applies here:
 
 - One user == One physical person.
-- One role == One Application (or AWS resource).
+- One role == One Applicatin (or AWS resource).
 - Root account is not to be used outside of its initial setup.
 - Do not leave IAM crendentials within the plaintext code.
 
