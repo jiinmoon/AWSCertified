@@ -1,0 +1,15 @@
+#+Title: More Notes
+#+Author: jmoon
+
+* AWS SAM
+** Deploying with AWS SAM
+
+AWS SAM uses AWS CloudFormation as the underlying deployment
+mechanism. You can deploy your application by using AWS SAM CLI.
+
+You can use =sam pacakge= and =sam deploy= cammands. Note that these
+are identical to their AWS CLI commands for =aws cloudformation
+package= and =aws cloudformation deply=, respectively.
+
+
+* 
