@@ -211,6 +211,7 @@ cost savings. There are
 
 - AMIs are base image of the running instances.
     - You can provide custom AMI.
+    - **AMIs are region locked**.
 
 - Each instances have different characteristics based on RAM, CPU, I/O,
   Network, and GPU.
